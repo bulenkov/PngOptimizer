@@ -94,6 +94,10 @@ public class OptimizePngAction extends DumbAwareAction {
       File file = new File(f.getPath());
       long size = file.length();
       BufferedImage image = ImageIO.read(file);
+      if (image == null) {
+        LOG.warn("Can't read image: " + f.getPath());
+        return 0;
+      }
       ByteArrayOutputStream byteArrayOutputStream = new ByteArrayOutputStream();
       ImageIO.write(image, "png", byteArrayOutputStream);
 
