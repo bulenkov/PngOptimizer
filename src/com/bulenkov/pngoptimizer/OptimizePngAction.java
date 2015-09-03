@@ -5,6 +5,7 @@ import com.intellij.notification.NotificationGroup;
 import com.intellij.notification.NotificationType;
 import com.intellij.openapi.actionSystem.AnActionEvent;
 import com.intellij.openapi.actionSystem.PlatformDataKeys;
+import com.intellij.openapi.diagnostic.Logger;
 import com.intellij.openapi.progress.ProgressManager;
 import com.intellij.openapi.project.DumbAwareAction;
 import com.intellij.openapi.project.Project;
@@ -25,6 +26,7 @@ import java.util.LinkedList;
  * @author Konstantin Bulenkov
  */
 public class OptimizePngAction extends DumbAwareAction {
+  private static final Logger LOG = Logger.getInstance(OptimizePngAction.class);
   @Override
   public void actionPerformed(AnActionEvent e) {
     VirtualFile[] files = e.getRequiredData(PlatformDataKeys.VIRTUAL_FILE_ARRAY);
@@ -87,26 +89,30 @@ public class OptimizePngAction extends DumbAwareAction {
     return file != null && !file.isDirectory() && "png".equalsIgnoreCase(file.getExtension());
   }
 
-  private static long optimize(VirtualFile f) throws IOException {
-    File file = new File(f.getPath());
-    long size = file.length();
-    BufferedImage image = ImageIO.read(file);
-    ByteArrayOutputStream byteArrayOutputStream = new ByteArrayOutputStream();
-    ImageIO.write(image, "png", byteArrayOutputStream);
+  private static long optimize(VirtualFile f) {
+    try {
+      File file = new File(f.getPath());
+      long size = file.length();
+      BufferedImage image = ImageIO.read(file);
+      ByteArrayOutputStream byteArrayOutputStream = new ByteArrayOutputStream();
+      ImageIO.write(image, "png", byteArrayOutputStream);
 
-    byte[] bytes = byteArrayOutputStream.toByteArray();
+      byte[] bytes = byteArrayOutputStream.toByteArray();
 
-    if (size > bytes.length) {
-      FileOutputStream fos = null;
-      try {
-        fos = new FileOutputStream(file);
-        fos.write(bytes);
-        return size - bytes.length;
-      } finally {
-        if (fos != null) {
-          fos.close();
+      if (size > bytes.length) {
+        FileOutputStream fos = null;
+        try {
+          fos = new FileOutputStream(file);
+          fos.write(bytes);
+          return size - bytes.length;
+        } finally {
+          if (fos != null) {
+            fos.close();
+          }
         }
       }
+    } catch (IOException e) {
+      LOG.error("Can't optimize " + f.getPath(), e);
     }
     return 0;
   }
