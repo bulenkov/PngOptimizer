@@ -1,6 +1,8 @@
 package com.bulenkov.pngoptimizer;
 
-import com.intellij.notification.*;
+import com.intellij.notification.NotificationDisplayType;
+import com.intellij.notification.NotificationGroup;
+import com.intellij.notification.NotificationType;
 import com.intellij.openapi.actionSystem.AnActionEvent;
 import com.intellij.openapi.actionSystem.PlatformDataKeys;
 import com.intellij.openapi.progress.ProgressManager;
@@ -8,7 +10,6 @@ import com.intellij.openapi.project.DumbAwareAction;
 import com.intellij.openapi.project.Project;
 import com.intellij.openapi.util.ThrowableComputable;
 import com.intellij.openapi.vfs.VirtualFile;
-import org.jetbrains.annotations.NotNull;
 
 import javax.imageio.ImageIO;
 import java.awt.image.BufferedImage;
@@ -16,7 +17,9 @@ import java.io.ByteArrayOutputStream;
 import java.io.File;
 import java.io.FileOutputStream;
 import java.io.IOException;
-import java.util.*;
+import java.util.Arrays;
+import java.util.Collection;
+import java.util.LinkedList;
 
 /**
  * @author Konstantin Bulenkov
@@ -27,12 +30,8 @@ public class OptimizePngAction extends DumbAwareAction {
     VirtualFile[] files = e.getRequiredData(PlatformDataKeys.VIRTUAL_FILE_ARRAY);
     try {
       optimize(e.getProject(), Arrays.asList(files), true);
-    } catch (IOException e1) {
-//      e1.printStackTrace();
+    } catch (IOException ignore) {
     }
-  }
-
-  private void optimizeAll(Project project, @NotNull VirtualFile[] files) {
   }
 
   @Override
