@@ -6,11 +6,13 @@ import com.intellij.notification.NotificationType;
 import com.intellij.openapi.actionSystem.AnActionEvent;
 import com.intellij.openapi.actionSystem.PlatformDataKeys;
 import com.intellij.openapi.diagnostic.Logger;
+import com.intellij.openapi.progress.ProgressIndicator;
 import com.intellij.openapi.progress.ProgressManager;
+import com.intellij.openapi.progress.Task;
 import com.intellij.openapi.project.DumbAwareAction;
 import com.intellij.openapi.project.Project;
-import com.intellij.openapi.util.ThrowableComputable;
 import com.intellij.openapi.vfs.VirtualFile;
+import org.jetbrains.annotations.NotNull;
 
 import javax.imageio.ImageIO;
 import java.awt.image.BufferedImage;
@@ -51,19 +53,21 @@ public class OptimizePngAction extends DumbAwareAction {
     e.getPresentation().setEnabledAndVisible(false);
   }
 
-  public static long optimize(Project project, final Collection<VirtualFile> files) throws IOException {
-    return optimize(project, files, false);
+  public static void optimize(Project project, final Collection<VirtualFile> files) throws IOException {
+    optimize(project, files, false);
   }
-  public static long optimize(final Project project, final Collection<VirtualFile> files, final boolean showBalloon) throws IOException {
-    return ProgressManager.getInstance().runProcessWithProgressSynchronously(new ThrowableComputable<Long, IOException>() {
+  public static void optimize(final Project project, final Collection<VirtualFile> files, final boolean showBalloon) throws IOException {
+    ProgressManager.getInstance().run(new Task.Backgroundable(project, "Optimizing PNG Images", true) {
       @Override
-      public Long compute() throws IOException {
+      public void run(@NotNull ProgressIndicator progressIndicator) {
         long optimized = 0;
         int optimizedFiles = 0;
         LinkedList<VirtualFile> images = new LinkedList<VirtualFile>(files);
 
         while (!images.isEmpty()) {
+          progressIndicator.checkCanceled();
           VirtualFile file = images.pop();
+          progressIndicator.setText(file.getPath());
           if (file.isDirectory()) {
             for (VirtualFile f : file.getChildren()) {
               images.push(f);
@@ -77,12 +81,21 @@ public class OptimizePngAction extends DumbAwareAction {
           }
         }
         if (showBalloon) {
+          String message = optimizedFiles + " files were optimized<br/>" + formatSize(optimized) + " saved";
           new NotificationGroup("PNG Optimizer", NotificationDisplayType.BALLOON, true)
-              .createNotification(optimizedFiles + " files were optimized<br/>" + optimized + " bytes saved", NotificationType.INFORMATION).notify(project);
+              .createNotification(message, NotificationType.INFORMATION)
+              .notify(project);
         }
-        return optimized;
       }
-    }, "Optimizing PNG Files", true, project);
+    });
+  }
+
+  private static String formatSize(long bytes) {
+    int unit = 1024;
+    if (bytes < unit) return bytes + " bytes";
+    int exp = (int) (Math.log(bytes) / Math.log(unit));
+    String pre = "KMGTPE".charAt(exp-1) + "";
+    return String.format("%.1f %sB", bytes / Math.pow(unit, exp), pre);
   }
 
   public static boolean isPngFile(VirtualFile file) {
