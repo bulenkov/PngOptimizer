@@ -5,7 +5,7 @@
   <vendor email="konstantin@bulenkov.com" url="http://www.bulenkov.com">Konstantin Bulenkov</vendor>
 
   <description><![CDATA[
-      Plugin allows to optimize PNG files by size before commit or manually
+      Plugin allows to optimize PNG files by size before commit and manually via context menu in Project View
     ]]></description>
 
   <idea-version since-build="131"/>
