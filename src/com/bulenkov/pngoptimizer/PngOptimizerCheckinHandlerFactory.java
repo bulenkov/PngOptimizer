@@ -81,6 +81,6 @@ public class PngOptimizerCheckinHandlerFactory extends CheckinHandlerFactory {
   }
 
   public static boolean isOptimizeEnabled() {
-    return PropertiesComponent.getInstance().getBoolean(PNG_OPTIMIZER_STATE_KEY, false);
+    return PropertiesComponent.getInstance().getBoolean(PNG_OPTIMIZER_STATE_KEY, true);
   }
 }
