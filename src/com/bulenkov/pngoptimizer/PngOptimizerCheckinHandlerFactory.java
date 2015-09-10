@@ -10,11 +10,11 @@ import com.intellij.openapi.vcs.checkin.CheckinHandlerFactory;
 import com.intellij.openapi.vcs.ui.RefreshableOnComponent;
 import com.intellij.openapi.vfs.VirtualFile;
 import com.intellij.util.PairConsumer;
-import com.intellij.util.ui.JBUI;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
 import javax.swing.*;
+import java.awt.*;
 import java.io.IOException;
 import java.util.ArrayList;
 
@@ -33,8 +33,11 @@ public class PngOptimizerCheckinHandlerFactory extends CheckinHandlerFactory {
         final JCheckBox checkBox = new JCheckBox("Optimize PNG files");
         return new RefreshableOnComponent() {
           public JComponent getComponent() {
-            if (getPngFiles(panel).isEmpty()) return JBUI.Panels.simplePanel();
-            return JBUI.Panels.simplePanel().addToLeft(checkBox);
+            JPanel root = new JPanel(new BorderLayout());
+            if (!getPngFiles(panel).isEmpty()) {
+              root.add(checkBox, BorderLayout.WEST);
+            }
+            return root;
           }
 
           public void refresh() {
