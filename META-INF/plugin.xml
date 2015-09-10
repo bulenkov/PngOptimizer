@@ -1,7 +1,7 @@
 <idea-plugin version="2">
   <id>com.bulenkov.intellij.png.optimizer</id>
   <name>PNG Optimizer</name>
-  <version>1.0</version>
+  <version>1.1</version>
   <vendor email="konstantin@bulenkov.com" url="http://www.bulenkov.com">Konstantin Bulenkov</vendor>
 
   <description><![CDATA[
