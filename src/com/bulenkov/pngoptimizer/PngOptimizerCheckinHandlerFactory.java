@@ -1,13 +1,13 @@
 package com.bulenkov.pngoptimizer;
 
 import com.intellij.ide.util.PropertiesComponent;
-import com.intellij.openapi.fileEditor.FileDocumentManager;
 import com.intellij.openapi.vcs.CheckinProjectPanel;
 import com.intellij.openapi.vcs.changes.CommitContext;
 import com.intellij.openapi.vcs.changes.CommitExecutor;
 import com.intellij.openapi.vcs.checkin.CheckinHandler;
 import com.intellij.openapi.vcs.checkin.CheckinHandlerFactory;
 import com.intellij.openapi.vcs.ui.RefreshableOnComponent;
+import com.intellij.openapi.vfs.LocalFileSystem;
 import com.intellij.openapi.vfs.VirtualFile;
 import com.intellij.util.PairConsumer;
 import org.jetbrains.annotations.NotNull;
@@ -61,10 +61,9 @@ public class PngOptimizerCheckinHandlerFactory extends CheckinHandlerFactory {
           if (!pngFiles.isEmpty()) {
             try {
               OptimizePngAction.optimize(panel.getProject(), pngFiles);
-            } catch (IOException e) {
-//              e.printStackTrace();
-            }
-            FileDocumentManager.getInstance().saveAllDocuments();
+            } catch (IOException ignore) {}
+
+            LocalFileSystem.getInstance().refreshFiles(pngFiles);
           }
         }
         return super.beforeCheckin();
