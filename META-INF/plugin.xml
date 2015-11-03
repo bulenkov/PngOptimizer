@@ -8,7 +8,7 @@
       Plugin allows to optimize PNG files by size before commit and manually via context menu in Project View
     ]]></description>
 
-  <idea-version since-build="131"/>
+  <idea-version since-build="131.0"/>
 
   <change-notes>
     <![CDATA[
