@@ -5,6 +5,8 @@ import com.intellij.notification.NotificationGroup;
 import com.intellij.notification.NotificationType;
 import com.intellij.openapi.actionSystem.AnActionEvent;
 import com.intellij.openapi.actionSystem.PlatformDataKeys;
+import com.intellij.openapi.application.Result;
+import com.intellij.openapi.application.WriteAction;
 import com.intellij.openapi.diagnostic.Logger;
 import com.intellij.openapi.progress.ProgressIndicator;
 import com.intellij.openapi.progress.ProgressManager;
@@ -102,7 +104,7 @@ public class OptimizePngAction extends DumbAwareAction {
     return file != null && !file.isDirectory() && "png".equalsIgnoreCase(file.getExtension());
   }
 
-  private static long optimize(VirtualFile f) {
+  private static long optimize(final VirtualFile f) {
     try {
       File file = new File(f.getPath());
       long size = file.length();
@@ -114,19 +116,16 @@ public class OptimizePngAction extends DumbAwareAction {
       ByteArrayOutputStream byteArrayOutputStream = new ByteArrayOutputStream();
       ImageIO.write(image, "png", byteArrayOutputStream);
 
-      byte[] bytes = byteArrayOutputStream.toByteArray();
+      final byte[] bytes = byteArrayOutputStream.toByteArray();
 
       if (size > bytes.length) {
-        FileOutputStream fos = null;
-        try {
-          fos = new FileOutputStream(file);
-          fos.write(bytes);
-          return size - bytes.length;
-        } finally {
-          if (fos != null) {
-            fos.close();
+        new WriteAction() {
+          protected void run(final Result result) throws IOException {
+            f.setBinaryContent(bytes);
           }
-        }
+        }.execute();
+
+        return size - bytes.length;
       }
     } catch (IOException e) {
       LOG.error("Can't optimize " + f.getPath(), e);
