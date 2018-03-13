@@ -33,7 +33,7 @@ public class OptimizePngAction extends DumbAwareAction {
   public void actionPerformed(AnActionEvent e) {
     VirtualFile[] files = e.getRequiredData(PlatformDataKeys.VIRTUAL_FILE_ARRAY);
     try {
-      optimize(e.getProject(), Arrays.asList(files), true);
+      optimize(e.getProject(), Arrays.asList(files), true, false);
     } catch (IOException ignore) {
     }
   }
@@ -54,40 +54,52 @@ public class OptimizePngAction extends DumbAwareAction {
   }
 
   public static void optimize(Project project, final Collection<VirtualFile> files) throws IOException {
-    optimize(project, files, false);
+    optimize(project, files, false, false);
   }
-  public static void optimize(final Project project, final Collection<VirtualFile> files, final boolean showBalloon) throws IOException {
-    ProgressManager.getInstance().run(new Task.Backgroundable(project, "Optimizing PNG Images", true) {
+
+  public static void optimize(final Project project, final Collection<VirtualFile> files, final boolean showBalloon, final boolean synchronous) throws IOException {
+    Task.Backgroundable task = new Task.Backgroundable(project, "Optimizing PNG Images", true) {
       @Override
       public void run(@NotNull ProgressIndicator progressIndicator) {
-        long optimized = 0;
-        int optimizedFiles = 0;
-        LinkedList<VirtualFile> images = new LinkedList<VirtualFile>(files);
+        createOptimizeRunnable(progressIndicator, files, showBalloon, project).run();
+      }
+    };
+    if (synchronous) {
+      ProgressManager.getInstance().runProcessWithProgressSynchronously(createOptimizeRunnable(null, files, false, project), task.getTitle(), true, project);
+    } else {
+      ProgressManager.getInstance().run(task);
+    }
+  }
 
-        while (!images.isEmpty()) {
-          progressIndicator.checkCanceled();
-          VirtualFile file = images.pop();
-          progressIndicator.setText(file.getPath());
-          if (file.isDirectory()) {
-            for (VirtualFile f : file.getChildren()) {
-              images.push(f);
-            }
-          } else if (isPngFile(file)) {
-            long profit = optimize(file);
-            if (profit > 0) {
-              optimized += profit;
-              optimizedFiles++;
-            }
+  private static Runnable createOptimizeRunnable(ProgressIndicator progressIndicator, Collection<VirtualFile> files, boolean showBalloon, Project project) {
+    return () -> {
+      long optimized = 0;
+      int optimizedFiles = 0;
+      LinkedList<VirtualFile> images = new LinkedList<VirtualFile>(files);
+
+      while (!images.isEmpty()) {
+        if (progressIndicator!= null) progressIndicator.checkCanceled();
+        VirtualFile file = images.pop();
+        if (progressIndicator!= null) progressIndicator.setText(file.getPath());
+        if (file.isDirectory()) {
+          for (VirtualFile f : file.getChildren()) {
+            images.push(f);
+          }
+        } else if (isPngFile(file)) {
+          long profit = optimize(file);
+          if (profit > 0) {
+            optimized += profit;
+            optimizedFiles++;
           }
         }
-        if (showBalloon) {
-          String message = optimizedFiles + " files were optimized<br/>" + formatSize(optimized) + " saved";
-          new NotificationGroup("PNG Optimizer", NotificationDisplayType.BALLOON, true)
-              .createNotification(message, NotificationType.INFORMATION)
-              .notify(project);
-        }
       }
-    });
+      if (showBalloon) {
+        String message = optimizedFiles + " files were optimized<br/>" + formatSize(optimized) + " saved";
+        new NotificationGroup("PNG Optimizer", NotificationDisplayType.BALLOON, true)
+                .createNotification(message, NotificationType.INFORMATION)
+                .notify(project);
+      }
+    };
   }
 
   private static String formatSize(long bytes) {
