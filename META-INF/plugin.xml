@@ -1,7 +1,7 @@
 <idea-plugin version="2">
   <id>com.bulenkov.intellij.png.optimizer</id>
   <name>PNG Optimizer</name>
-  <version>1.2</version>
+  <version>1.3</version>
   <vendor email="konstantin@bulenkov.com" url="http://www.bulenkov.com">Konstantin Bulenkov</vendor>
 
   <description><![CDATA[
@@ -12,9 +12,9 @@
 
   <change-notes>
     <![CDATA[
-    <p>1.2</p>
+    <p>1.3</p>
     <ul>
-      <li>Fixed a problem when actual updated state of a png file is visible for the system after the commit</li>
+      <li>Fixed a problem when some files updated after the commit</li>
     </ul>
     ]]>
   </change-notes>
