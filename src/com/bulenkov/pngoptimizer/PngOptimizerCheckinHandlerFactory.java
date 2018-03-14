@@ -63,9 +63,7 @@ public class PngOptimizerCheckinHandlerFactory extends CheckinHandlerFactory {
               OptimizePngAction.optimize(panel.getProject(), pngFiles, false, true);
             } catch (IOException ignore) {}
 
-            System.out.println("VFS start");
             LocalFileSystem.getInstance().refreshFiles(pngFiles);
-            System.out.println("VFS end");
           }
         }
         return super.beforeCheckin();
